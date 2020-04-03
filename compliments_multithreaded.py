@@ -3,60 +3,69 @@ import random
 import time
 from threading import Thread
 
-import configuration
 import requests
 import vk_api
 from vk_api.utils import get_random_id
 
-# ========boring background==================
-token = configuration.token
-print(token)
-threads = []
-vk_session = vk_api.VkApi(token=token)
+import tell_me_sth_good.configuration as configuration
+from tell_me_sth_good.token_bot import token, group_id
 
 
-# ===========================================
+def authorize():
+    vk_session = vk_api.VkApi(token=token)
+    return vk_session.get_api()
 
 
-def compliment():
+def compliment(sex=0):
+    sex = abs(sex - 1)
     req = requests.post('http://freegenerator.ru/compliment',
-                        data={'type': 'compliment', 'sex': 0, 'long_val': 1}).json()
+                        data={'type': 'compliment', 'sex': sex, 'long_val': 1}).json()
     return req['text']
 
 
+def set_sleep_time(vk, member_id, nickname):
+    print(f"[{nickname}] Starting")
 
-def sending(user):
-    '''
-    Sends a message to user after waiting(sleeping)
-    :param user: string. Key of dictionary configuration.users_id
-    :return: None
-    '''
-    print("[{}] Starting".format(user))
     seconds = random.randint(1, configuration.upper_seconds_bound + 1)
     now = datetime.datetime.now()
     delta = datetime.timedelta(seconds=seconds)
-    print("[{}] Your compliment will be sent at {}, in {} seconds".format(user, now + delta, seconds))
+    print(f"[{nickname}] \
+    Your compliment will be sent in {seconds} seconds, at {now + delta}")
     time.sleep(seconds)
 
-    vk = vk_session.get_api()
-    # listening(vk)
 
+def sending(vk, member_id):
+    """
+    Sends a message to user after waiting(sleeping)
+    :param vk: vk_api.vk_api.VkApiMethod
+    :param member_id: int
+    :return: None
+    """
+    nickname = vk.users.get(user_ids=[member_id])[0]['first_name'] + ' ' + \
+               vk.users.get(user_ids=[member_id])[0]['last_name']
+
+    set_sleep_time(vk, member_id, nickname)
     vk.messages.send(
-        user_id=configuration.users_id[user],
-        attachment=None,  # todo: you can attach pictures
+        user_id=member_id,
         random_id=get_random_id(),
-        message=compliment()
+        message=compliment(sex=vk.users.get(user_id=member_id, fields="sex")[0]['sex'])
     )
-    print('[{}] ok'.format(user))
+    print(f"[{nickname}] ok.")
+
+
+def start_threads():
+    vk = authorize()
+    members_id = vk.groups.getMembers(group_id=group_id)["items"]
+    while True:
+        threads = [Thread(target=sending, args=(vk, i)) for i in members_id]
+        for i in range(len(members_id)):
+            threads[i].start()
+        for i in range(len(members_id)):
+            threads[i].join()
 
 
 def main():
-    while True:
-        threads = [Thread(target=sending, args=(i,)) for i in configuration.users_id.keys()]
-        for i in range(len(configuration.users_id)):
-            threads[i].start()
-        for i in range(len(configuration.users_id)):
-            threads[i].join()
+    start_threads()
 
 
 if __name__ == '__main__':
