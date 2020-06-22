@@ -1,2 +1,1 @@
-token = "" #str
-group_id = # int
+token = "df889b3ac8d9a2c15cc89c1e3c9221acbdc35b88e42597d05c962580f442e175397d9b2677dddc8fa38d8"

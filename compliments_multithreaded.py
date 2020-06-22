@@ -7,8 +7,8 @@ import requests
 import vk_api
 from vk_api.utils import get_random_id
 
-import tell_me_sth_good.configuration as configuration
-from tell_me_sth_good.token_bot import token, group_id
+import compliments.configuration as configuration
+from compliments.token_bot import token
 
 
 def authorize():
@@ -29,8 +29,7 @@ def set_sleep_time(vk, member_id, nickname):
     seconds = random.randint(1, configuration.upper_seconds_bound + 1)
     now = datetime.datetime.now()
     delta = datetime.timedelta(seconds=seconds)
-    print(f"[{nickname}] \
-    Your compliment will be sent in {seconds} seconds, at {now + delta}")
+    print(f"[{nickname}] Your compliment will be sent in {seconds} seconds, at {now + delta}")
     time.sleep(seconds)
 
 
@@ -45,18 +44,22 @@ def sending(vk, member_id):
                vk.users.get(user_ids=[member_id])[0]['last_name']
 
     set_sleep_time(vk, member_id, nickname)
-    vk.messages.send(
-        user_id=member_id,
-        random_id=get_random_id(),
-        message=compliment(sex=vk.users.get(user_id=member_id, fields="sex")[0]['sex'])
-    )
-    print(f"[{nickname}] ok.")
+
+    try:
+        vk.messages.send(
+            user_id=member_id,
+            random_id=get_random_id(),
+            message=compliment(sex=vk.users.get(user_id=member_id, fields="sex")[0]['sex'])
+        )
+        print(f"[{nickname}] ok.")
+    except vk_api.exceptions.ApiError:
+        print(f"[{nickname}] I have no access to that user.")
 
 
 def start_threads():
     vk = authorize()
-    members_id = vk.groups.getMembers(group_id=group_id)["items"]
     while True:
+        members_id = vk.groups.getMembers(group_id=configuration.group_id)["items"]
         threads = [Thread(target=sending, args=(vk, i)) for i in members_id]
         for i in range(len(members_id)):
             threads[i].start()
