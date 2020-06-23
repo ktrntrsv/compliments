@@ -1,2 +1,4 @@
-./.venv
-./token_bot.py
+.venv/
+testing_vk_bot.py
+__pycache__/
+token_bot.py
