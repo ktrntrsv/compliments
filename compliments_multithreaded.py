@@ -6,6 +6,7 @@ from threading import Thread
 import requests
 import vk_api
 from vk_api.utils import get_random_id
+from vk_api.longpoll import VkLongPoll, VkEventType
 
 import compliments.configuration as configuration
 from compliments.token_bot import token
@@ -13,7 +14,7 @@ from compliments.token_bot import token
 
 def authorize():
     vk_session = vk_api.VkApi(token=token)
-    return vk_session.get_api()
+    return vk_session, vk_session.get_api()
 
 
 def compliment(sex=0):
@@ -24,8 +25,6 @@ def compliment(sex=0):
 
 
 def set_sleep_time(vk, member_id, nickname):
-    print(f"[{nickname}] Starting")
-
     seconds = random.randint(1, configuration.upper_seconds_bound + 1)
     now = datetime.datetime.now()
     delta = datetime.timedelta(seconds=seconds)
@@ -56,20 +55,26 @@ def sending(vk, member_id):
         print(f"[{nickname}] I have no access to that user.")
 
 
+def listening(none, vk_session):
+    longpoll = VkLongPoll(vk_session)
+    print("Im listening")
+
+    for event in longpoll.listen():
+        if event.type == VkEventType.MESSAGE_NEW and event.to_me and event.text:
+            print(f"I've got a message from {event.from_user}")
+
+
 def start_threads():
-    vk = authorize()
+    vk_session, vk = authorize()
     while True:
         members_id = vk.groups.getMembers(group_id=configuration.group_id)["items"]
         threads = [Thread(target=sending, args=(vk, i)) for i in members_id]
-        for i in range(len(members_id)):
+        threads.append(Thread(target=listening, args=(None, vk_session)))
+        for i in range(len(threads)):
             threads[i].start()
-        for i in range(len(members_id)):
+        for i in range(len(threads)):
             threads[i].join()
 
 
-def main():
-    start_threads()
-
-
 if __name__ == '__main__':
-    main()
+    start_threads()
