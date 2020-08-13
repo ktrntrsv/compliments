@@ -7,7 +7,7 @@ Person must be subscribed to the group and there must be permission to send mess
 All depences are in requirements.txt.
 
 IMPORTANT
-Also you should create file token_bot.py. The file should contain a token from your bot.
+Also you should create file token_bot.py. The file should contain bot's token.
 For example:
 
 token = '00000000'
