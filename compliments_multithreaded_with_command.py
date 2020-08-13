@@ -74,30 +74,27 @@ def listening(_, vk, vk_session):
                 if event.type == VkEventType.MESSAGE_NEW and event.to_me and event.text:
                     user_info = vk.users.get(user_ids=event.user_id)[0]
                     message_content: str = event.message
-                    print(f"[{user_info['first_name']} {user_info['last_name']}] I've got a message: "
+                    print(f"\n[{user_info['first_name']} {user_info['last_name']}] I've got a message: "
                           f"\"{message_content}\"")
                     if message_content in ("!комплимент", "!Комплимент", "!compliment", "!Compliment"):
                         sending(vk, user_info["id"], sleep=False)
+                        print('\n')
         except Exception as ex:
             print("[!]Exception ", repr(ex))
             continue
 
 
-# def start_threads():
-#     vk_session, vk = authorize()
-#     while True:
-#         members_id = vk.groups.getMembers(group_id=configuration.group_id)["items"]
-#         threads = [Thread(target=sending, args=(vk, i)) for i in members_id]
-#         threads.append(Thread(target=listening, args=(None, vk_session)))
-#         for i in range(len(threads)):
-#             threads[i].start()
-#         for i in range(len(threads)):
-#             threads[i].join()
-#
-#
-# if __name__ == '__main__':
-#     start_threads()
+def start_threads():
+    vk_session, vk = authorize()
+    while True:
+        members_id = vk.groups.getMembers(group_id=configuration.group_id)["items"]
+        threads = [Thread(target=sending, args=(vk, i)) for i in members_id]
+        threads.append(Thread(target=listening, args=(None, vk, vk_session)))
+        for i in range(len(threads)):
+            threads[i].start()
+        for i in range(len(threads)):
+            threads[i].join()
+
 
 if __name__ == '__main__':
-    vk_session, vk = authorize()
-    listening(None, vk, vk_session)
+    start_threads()
