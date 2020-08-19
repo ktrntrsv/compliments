@@ -1,13 +1,12 @@
 import datetime
 import random
 import time
-from threading import Thread
 
 import requests
 import vk_api
-# from vk_api import
 from vk_api.utils import get_random_id
 from vk_api.longpoll import VkLongPoll, VkEventType
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import bot_compliments.configuration as configuration
 from bot_compliments.token_bot import token
@@ -30,7 +29,7 @@ def get_compliment(sex=0):
     return req['text']
 
 
-def set_sleep_time(nickname):
+def set_sleep_time(nickname: str) -> None:
     seconds = random.randint(1, configuration.upper_seconds_bound + 1)
     now = datetime.datetime.now()
     delta = datetime.timedelta(seconds=seconds)
@@ -88,12 +87,12 @@ def start_threads():
     vk_session, vk = authorize()
     while True:
         members_id = vk.groups.getMembers(group_id=configuration.group_id)["items"]
-        threads = [Thread(target=sending, args=(vk, i)) for i in members_id]
-        threads.append(Thread(target=listening, args=(None, vk, vk_session)))
-        for i in range(len(threads)):
-            threads[i].start()
-        for i in range(len(threads)):
-            threads[i].join()
+        with ThreadPoolExecutor() as pool:
+            results = [pool.submit(sending, vk, i) for i in members_id] + \
+                      [pool.submit(listening, None, vk, vk_session)]
+
+            for future in as_completed(results):
+                future.result()
 
 
 if __name__ == '__main__':
