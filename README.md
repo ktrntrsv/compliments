@@ -1,5 +1,5 @@
 # compliments
-I could tell you something good about you.
+I could tell you something good.
 
 The bot sends compliments at different intervals, about once every 1-2 days, but this can be edited in the configuration file.
 Person must be subscribed to the group and there must be permission to send messages (you can write any message to the bot).
