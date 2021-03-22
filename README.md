@@ -13,3 +13,4 @@ For example:
 token = '00000000'
 
 My bot works on this page: https://vk.com/club193717698
+But recently he took a day off
