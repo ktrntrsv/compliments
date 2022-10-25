@@ -6,11 +6,11 @@ Person must be subscribed to the group and there must be permission to send mess
 
 All depences are in requirements.txt.
 
-IMPORTANT
 Also you should create file token_bot.py. The file should contain bot's token.
-For example:
+Example:
+`token = '00000000'`
 
-token = '00000000'
+---
+Присылает сальные комплименты короче ахахахахаа
 
-My bot works on this page: https://vk.com/club193717698
-But recently he took a day off
+![image](https://user-images.githubusercontent.com/40740806/197723139-ffd67631-62a6-433c-b981-ce4a9bb29289.png)
